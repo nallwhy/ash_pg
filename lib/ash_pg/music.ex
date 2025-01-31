@@ -3,5 +3,6 @@ defmodule AshPg.Music do
     otp_app: :ash_pg
 
   resources do
+    resource AshPg.Music.Artist
   end
 end
