@@ -13,4 +13,8 @@ defmodule AshPg.Music.Album do
     create_timestamp :created_at
     update_timestamp :updated_at
   end
+
+  relationships do
+    many_to_many :artists, AshPg.Music.Artist, through: AshPg.Music.ArtistAlbum
+  end
 end
