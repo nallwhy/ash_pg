@@ -4,5 +4,6 @@ defmodule AshPg.Music do
 
   resources do
     resource AshPg.Music.Artist
+    resource AshPg.Music.Album
   end
 end
