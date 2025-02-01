@@ -9,3 +9,31 @@
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
+
+alias AshPg.Music
+
+Ash.DataLayer.transaction([Music.Artist], fn ->
+  artists =
+    1..100
+    |> Enum.map(fn i ->
+      Ash.Seed.seed!(Music.Artist, %{
+        name: "artist-#{i}"
+      })
+    end)
+
+  albums =
+    1..100
+    |> Enum.map(fn i ->
+      Ash.Seed.seed!(Music.Album, %{
+        title: "album-#{i}"
+      })
+    end)
+
+  [artists, albums]
+  |> Enum.zip_with(fn [artist, album] ->
+    Ash.Seed.seed!(Music.ArtistAlbum, %{
+      artist_id: artist.id,
+      album_id: album.id
+    })
+  end)
+end)
