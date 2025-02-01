@@ -6,6 +6,12 @@ defmodule AshPg.Music.Artist do
     repo AshPg.Repo
   end
 
+  actions do
+    read :list do
+      primary? true
+    end
+  end
+
   attributes do
     uuid_v7_primary_key :id
     attribute :name, :string, allow_nil?: false
