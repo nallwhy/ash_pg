@@ -19,6 +19,10 @@ defmodule AshPg.Music.Album do
     read :list do
       primary? true
     end
+
+    destroy :delete do
+      primary? true
+    end
   end
 
   attributes do
@@ -31,5 +35,10 @@ defmodule AshPg.Music.Album do
 
   relationships do
     many_to_many :artists, AshPg.Music.Artist, through: AshPg.Music.ArtistAlbum
+    has_many :artist_albums, AshPg.Music.ArtistAlbum
+  end
+
+  archive do
+    archive_related [:artist_albums]
   end
 end

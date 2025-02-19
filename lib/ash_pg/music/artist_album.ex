@@ -19,6 +19,10 @@ defmodule AshPg.Music.ArtistAlbum do
     read :list do
       primary? true
     end
+
+    destroy :delete do
+      primary? true
+    end
   end
 
   relationships do
