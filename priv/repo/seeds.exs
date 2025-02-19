@@ -17,7 +17,11 @@ Ash.DataLayer.transaction([Music.Artist], fn ->
     1..100
     |> Enum.map(fn i ->
       Ash.Seed.seed!(Music.Artist, %{
-        name: "artist-#{i}"
+        name: "artist-#{i}",
+        bio: Ash.Seed.seed!(Music.ArtistBio, %{
+          birth: Date.range(~D[2000-01-01], ~D[2010-01-01]) |> Enum.random(),
+          nationality: ["US", "UK", "KO", "JP"] |> Enum.random()
+        })
       })
     end)
 
