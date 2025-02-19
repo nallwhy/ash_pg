@@ -15,6 +15,7 @@ defmodule AshPg.Music.Artist do
   attributes do
     uuid_v7_primary_key :id
     attribute :name, :string, allow_nil?: false
+    attribute :bio, AshPg.Music.ArtistBio, allow_nil?: true
 
     create_timestamp :created_at
     update_timestamp :updated_at
