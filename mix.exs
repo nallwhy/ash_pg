@@ -34,9 +34,10 @@ defmodule AshPg.MixProject do
   defp deps do
     [
       {:sourceror, "~> 1.7", only: [:dev, :test]},
-      {:ash_postgres, "~> 2.0"},
-      {:ash, "~> 3.0"},
       {:igniter, "~> 0.5", only: [:dev, :test]},
+      {:ash, "~> 3.0"},
+      {:ash_postgres, "~> 2.0"},
+      {:ash_archival, "~> 1.0"},
       {:phoenix, "~> 1.7.18"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.10"},
