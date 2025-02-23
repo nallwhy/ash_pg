@@ -3,7 +3,7 @@ defmodule AshPg.Music.Album do
     otp_app: :ash_pg,
     domain: AshPg.Music,
     data_layer: AshPostgres.DataLayer,
-    extensions: [AshArchival.Resource]
+    extensions: [AshArchival.Resource, AshPaperTrail.Resource]
 
   postgres do
     table "albums"
@@ -13,6 +13,13 @@ defmodule AshPg.Music.Album do
 
   archive do
     archive_related [:artist_albums]
+  end
+
+  paper_trail do
+    primary_key_type :uuid_v7
+    change_tracking_mode :snapshot
+    store_action_name? true
+    ignore_attributes [:created_at, :updated_at]
   end
 
   resource do
