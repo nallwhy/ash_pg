@@ -11,6 +11,10 @@ defmodule AshPg.Music.Artist do
     base_filter_sql "(archived_at IS NULL)"
   end
 
+  archive do
+    archive_related [:artist_albums]
+  end
+
   resource do
     base_filter expr(is_nil(archived_at))
   end
@@ -37,9 +41,5 @@ defmodule AshPg.Music.Artist do
   relationships do
     many_to_many :albums, AshPg.Music.Album, through: AshPg.Music.ArtistAlbum
     has_many :artist_albums, AshPg.Music.ArtistAlbum
-  end
-
-  archive do
-    archive_related [:artist_albums]
   end
 end
