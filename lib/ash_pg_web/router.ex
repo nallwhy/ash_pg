@@ -18,6 +18,8 @@ defmodule AshPgWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    live "/ai_agent", AiAgentLive
   end
 
   # Other scopes may use custom stacks.
