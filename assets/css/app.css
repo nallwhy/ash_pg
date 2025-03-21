@@ -3,3 +3,19 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+
+.prose p {
+  margin: 0;
+}
+
+.prose ol {
+  margin: 0;
+}
+
+.prose ul {
+  margin: 0;
+}
+
+.prose li {
+  margin: 0;
+}
