@@ -2,6 +2,7 @@ defmodule AshPgWeb.AiAgentLive do
   use AshPgWeb, :live_view
 
   alias AshPg.Ai.Agent
+  alias AshPg.Markdown
 
   @impl true
   def mount(_params, _session, socket) do
@@ -20,7 +21,7 @@ defmodule AshPgWeb.AiAgentLive do
       <h1>AI Chat</h1>
 
       <div id="chat-log" class="overflow-y-scroll h-96 border border-gray-300 rounded p-4 mb-4">
-        <ol id="messages">
+        <ol id="messages" class="space-y-4">
           <%= for message <- @messages do %>
             <li
               :if={message_role(message) != :system and message_type(message) == :message}
@@ -29,12 +30,16 @@ defmodule AshPgWeb.AiAgentLive do
               <span class={"font-bold #{if user?(message), do: "text-blue-500", else: "text-green-500"}"}>
                 {if user?(message), do: "You", else: "AI"}:
               </span>
-              {message.content}
+              <span class="prose">
+                {message.content |> Markdown.html() |> raw()}
+              </span>
             </li>
           <% end %>
           <li :if={@new_message} class="text-left">
             <span class="font-bold text-green-500">AI</span>
-            {@new_message}
+            <span class="prose">
+              {@new_message |> Markdown.html() |> raw()}
+            </span>
           </li>
         </ol>
       </div>
@@ -58,9 +63,9 @@ defmodule AshPgWeb.AiAgentLive do
         {tool.parameters_schema |> Jason.encode!(pretty: true)}
       </div> --%>
 
-      <div :for={message <- @messages} class="whitespace-pre-wrap">
+      <%!-- <div :for={message <- @messages} class="whitespace-pre-wrap">
         {message.content |> Jason.encode!(pretty: true)}
-      </div>
+      </div> --%>
     </div>
     """
   end
@@ -118,6 +123,7 @@ defmodule AshPgWeb.AiAgentLive do
       end
     }
 
+    # TODO(jinkyou): init with last messages
     {:ok, agent} = Agent.start_link(handler: handler)
 
     socket
