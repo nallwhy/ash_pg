@@ -82,7 +82,8 @@ defmodule AshPgWeb.AiAgentLive do
 
     socket =
       socket
-      |> assign(:messages, messages)
+      |> assign(messages: messages, new_message: "")
+      |> push_event("scroll-to", %{selector: "#chat-log", to: "bottom"})
 
     {:noreply, socket}
   end
@@ -118,8 +119,11 @@ defmodule AshPgWeb.AiAgentLive do
           send(pid, {:new_message, content})
         end
       end,
-      on_message_processed: fn chain, _message ->
-        send(pid, {:message_processed, chain.messages})
+      on_message_processed: fn chain, message ->
+        case message_type(message) do
+          :message -> send(pid, {:message_processed, chain.messages})
+            _ -> nil
+          end
       end
     }
 
