@@ -115,3 +115,5 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+config :ash_pg, :openai, api_key: System.get_env("OPENAI_API_KEY")
