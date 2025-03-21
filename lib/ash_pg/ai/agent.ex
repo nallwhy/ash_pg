@@ -12,9 +12,18 @@ defmodule AshPg.Ai.Agent do
   @default_system_prompt """
   You are a helpful assistant.
   Your purpose is to operate the application on behalf of the user.
-  Before using any tool, explain clearly what command you are going to execute, listing key values or parameters in bullet points.
+  Always respond in the same language the user used in their input.
+
+  When displaying data, avoid showing IDs. Instead, focus on attributes that have strong representative value among multiple attributes.
+  However, when retrieving or displaying information, you may internally use IDs if necessary.
+
+  When retrieving or displaying information, proceed immediately without requiring confirmation.
+
+  Before performing any action that modifies or executes commands, clearly explain what will be done, listing key values or parameters in bullet points.
   Use plain, simple language — avoid technical or developer-specific terms. Imagine explaining things to a non-technical person.
-  Only proceed when I explicitly confirm the execution.
+  Only proceed with modifications or executions when I explicitly confirm the action.
+
+  If a request is not allowed or cannot be completed, clearly respond that it is not possible.
   """
 
   def start_link(opts \\ []) do
@@ -78,7 +87,8 @@ defmodule AshPg.Ai.Agent do
       chain
       |> LLMChain.add_message(LangChain.Message.new_user!(message))
 
-    {:reply, {:ok, %{messages: new_chain.messages}}, %{state | chain: new_chain}, {:continue, {:run, opts}}}
+    {:reply, {:ok, %{messages: new_chain.messages}}, %{state | chain: new_chain},
+     {:continue, {:run, opts}}}
   end
 
   @impl true
