@@ -8,6 +8,7 @@ defmodule AshPgWeb.AiAgentLive do
     socket =
       socket
       |> assign_agent()
+      |> assign(messages: [], new_message: nil)
 
     {:ok, socket}
   end
@@ -20,7 +21,7 @@ defmodule AshPgWeb.AiAgentLive do
 
       <div id="chat-log" class="overflow-y-scroll h-96 border border-gray-300 rounded p-4 mb-4">
         <ol id="messages">
-          <%= for message <- @agent.messages do %>
+          <%= for message <- @messages do %>
             <li
               :if={message_role(message) != :system and message_type(message) == :message}
               class={"#{if user?(message), do: "text-right", else: "text-left"}"}
@@ -31,6 +32,10 @@ defmodule AshPgWeb.AiAgentLive do
               {message.content}
             </li>
           <% end %>
+          <li :if={@new_message} class="text-left">
+            <span class="font-bold text-green-500">AI</span>
+            {@new_message}
+          </li>
         </ol>
       </div>
 
@@ -49,8 +54,12 @@ defmodule AshPgWeb.AiAgentLive do
         </button>
       </form>
 
-      <div :for={tool <- @agent.tools} class="whitespace-pre-wrap">
+      <%!-- <div :for={tool <- @agent.tools} class="whitespace-pre-wrap">
         {tool.parameters_schema |> Jason.encode!(pretty: true)}
+      </div> --%>
+
+      <div :for={message <- @messages} class="whitespace-pre-wrap">
+        {message.content |> Jason.encode!(pretty: true)}
       </div>
     </div>
     """
@@ -64,24 +73,55 @@ defmodule AshPgWeb.AiAgentLive do
   @impl true
   def handle_event("send_message", %{"message" => message}, socket) do
     agent = socket.assigns.agent
+    {:ok, %{messages: messages}} = agent |> Agent.run(message)
 
     socket =
-      case agent |> Agent.run(message) do
-        {:ok, agent} ->
-          socket
-          |> assign(:agent, agent)
+      socket
+      |> assign(:messages, messages)
 
-        {:error, reason} ->
-          socket
-          |> put_flash(:error, "Error: #{reason}")
-      end
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:new_message, content}, socket) do
+    socket =
+      socket
+      |> update(:new_message, fn
+        nil -> content
+        message -> message <> content
+      end)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:message_processed, messages}, socket) do
+    socket =
+      socket
+      |> assign(:messages, messages)
+      |> assign(:new_message, nil)
 
     {:noreply, socket}
   end
 
   defp assign_agent(socket) do
+    pid = self()
+
+    handler = %{
+      on_llm_new_delta: fn _chain, %{content: content} ->
+        if content do
+          send(pid, {:new_message, content})
+        end
+      end,
+      on_message_processed: fn chain, _message ->
+        send(pid, {:message_processed, chain.messages})
+      end
+    }
+
+    {:ok, agent} = Agent.start_link(handler: handler)
+
     socket
-    |> assign(:agent, Agent.init())
+    |> assign(:agent, agent)
   end
 
   defp user?(message), do: message_role(message) == :user
