@@ -39,6 +39,7 @@ defmodule AshPg.MixProject do
       {:ash_postgres, "~> 2.0"},
       {:ash_archival, "~> 1.0"},
       {:ash_paper_trail, "~> 0.5"},
+      {:ash_ai, github: "ash-project/ash_ai", branch: "main"},
       {:phoenix, "~> 1.7.18"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.10"},
