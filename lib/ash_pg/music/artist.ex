@@ -31,6 +31,11 @@ defmodule AshPg.Music.Artist do
       primary? true
     end
 
+    create :create do
+      primary? true
+      accept [:name, :bio]
+    end
+
     destroy :delete do
       primary? true
     end
@@ -38,8 +43,8 @@ defmodule AshPg.Music.Artist do
 
   attributes do
     uuid_v7_primary_key :id
-    attribute :name, :string, allow_nil?: false
-    attribute :bio, AshPg.Music.ArtistBio, allow_nil?: true
+    attribute :name, :string, allow_nil?: false, public?: true
+    attribute :bio, AshPg.Music.ArtistBio, allow_nil?: true, public?: true
 
     create_timestamp :created_at
     update_timestamp :updated_at
