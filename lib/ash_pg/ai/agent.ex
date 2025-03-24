@@ -27,6 +27,9 @@ defmodule AshPg.Ai.Agent do
   Before performing any action that modifies data, changes state, or executes commands, clearly explain what you are going to do.
   List key values or parameters in bullet points.
   Use plain, simple language — avoid technical or developer-specific terms.
+
+  Additionally, when explaining actions that will modify data or change state, always summarize the inputs and key parameters used for the action. Present them in a clear, easy-to-read list, so the user can review all relevant details before confirming.
+
   Only proceed with such actions when I explicitly confirm.
 
   When displaying data, avoid showing IDs.
@@ -41,9 +44,9 @@ defmodule AshPg.Ai.Agent do
     GenServer.call(agent, {:run, message, opts}, @timeout)
   end
 
-  def list_messages(agent) do
-    GenServer.call(agent, :list_messages, @timeout)
-  end
+  # def list_messages(agent) do
+  #   GenServer.call(agent, :list_messages, @timeout)
+  # end
 
   @impl true
   def init(opts) do
@@ -90,20 +93,21 @@ defmodule AshPg.Ai.Agent do
 
   @impl true
   def handle_call({:run, message, opts}, _from, %{chain: chain} = state) do
+    %{contents: [%{type: :text, content: message_content}]} = message
+
     new_chain =
       chain
-      |> LLMChain.add_message(LangChain.Message.new_user!(message))
+      |> LLMChain.add_message(LangChain.Message.new_user!(message_content))
 
-    {:reply, {:ok, %{messages: new_chain.messages}}, %{state | chain: new_chain},
-     {:continue, {:run, opts}}}
+    {:reply, {:ok, nil}, %{state | chain: new_chain}, {:continue, {:run, opts}}}
   end
 
-  @impl true
-  def handle_call(:list_messages, _from, %{chain: chain} = state) do
-    messages = chain.messages
+  # @impl true
+  # def handle_call(:list_messages, _from, %{chain: chain} = state) do
+  #   messages = chain.messages
 
-    {:reply, {:ok, messages}, state}
-  end
+  #   {:reply, {:ok, messages}, state}
+  # end
 
   @impl true
   def handle_continue({:run, _opts}, %{chain: chain} = state) do
@@ -114,9 +118,9 @@ defmodule AshPg.Ai.Agent do
         {:ok, new_chain} ->
           new_chain
 
-        {:error, error} ->
+        {:error, new_chain, error} ->
           Logger.warning("Error running chain: #{inspect(error)}")
-          chain
+          new_chain
       end
 
     {:noreply, %{state | chain: new_chain}}

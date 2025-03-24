@@ -2,6 +2,7 @@ defmodule AshPgWeb.AiAgentLive do
   use AshPgWeb, :live_view
 
   alias AshPg.Ai.Agent
+  alias AshPg.Ai.Message
   alias AshPg.Markdown
 
   @impl true
@@ -9,7 +10,8 @@ defmodule AshPgWeb.AiAgentLive do
     socket =
       socket
       |> assign_agent()
-      |> assign(messages: [], new_message: nil)
+      |> stream(:messages, [])
+      |> assign(new_message: nil)
 
     {:ok, socket}
   end
@@ -20,25 +22,36 @@ defmodule AshPgWeb.AiAgentLive do
     <div>
       <h1>AI Chat</h1>
 
-      <div id="chat-log" class="overflow-y-scroll h-96 border border-gray-300 rounded p-4 mb-4">
-        <ol id="messages" class="space-y-4">
-          <%= for message <- @messages do %>
-            <li
-              :if={message_role(message) != :system and message_type(message) == :message}
-              class={"#{if user?(message), do: "text-right", else: "text-left"}"}
-            >
-              <span class={"font-bold #{if user?(message), do: "text-blue-500", else: "text-green-500"}"}>
-                {if user?(message), do: "You", else: "AI"}:
-              </span>
-              <span class="prose">
-                {message.content |> Markdown.html() |> raw()}
-              </span>
-            </li>
-          <% end %>
-          <li :if={@new_message} class="text-left">
-            <span class="font-bold text-green-500">AI</span>
+      <div
+        id="chat-log"
+        class="overflow-y-scroll h-96 border border-gray-300 rounded p-4 mb-4 space-y-4"
+      >
+        <ol id="messages" class="space-y-4" phx-update="stream">
+          <li
+            :for={{dom_id, message} <- @streams.messages}
+            :if={message_role(message) != :system and message_type(message) == :message}
+            id={dom_id}
+            class={"#{if user?(message), do: "text-right", else: "text-left"}"}
+          >
+            <span class={"font-bold #{if user?(message), do: "text-blue-500", else: "text-green-500"}"}>
+              {if user?(message), do: "You", else: "AI"}:
+            </span>
             <span class="prose">
-              {@new_message |> Markdown.html() |> raw()}
+              {message.contents
+              |> Enum.map(fn %Message.ContentPart{type: :text, content: content} ->
+                content |> Markdown.html() |> raw()
+              end)}
+            </span>
+          </li>
+        </ol>
+        <ol>
+          <li :if={@new_message} class="text-left">
+            <span class="font-bold text-green-500">AI:</span>
+            <span class="prose">
+              <span :if={@new_message == ""}>
+                <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+              </span>
+              <span :if={@new_message != ""}>{@new_message |> Markdown.html() |> raw()}</span>
             </span>
           </li>
         </ol>
@@ -76,13 +89,16 @@ defmodule AshPgWeb.AiAgentLive do
   end
 
   @impl true
-  def handle_event("send_message", %{"message" => message}, socket) do
+  def handle_event("send_message", %{"message" => message_content}, socket) do
+    message = Message.user(message_content)
+
     agent = socket.assigns.agent
-    {:ok, %{messages: messages}} = agent |> Agent.run(message)
+    {:ok, _} = agent |> Agent.run(message)
 
     socket =
       socket
-      |> assign(messages: messages, new_message: "")
+      |> stream_insert(:messages, message)
+      |> assign(new_message: "")
       |> push_event("scroll-to", %{selector: "#chat-log", to: "bottom"})
 
     {:noreply, socket}
@@ -101,10 +117,10 @@ defmodule AshPgWeb.AiAgentLive do
   end
 
   @impl true
-  def handle_info({:message_processed, messages}, socket) do
+  def handle_info({:message_processed, message}, socket) do
     socket =
       socket
-      |> assign(:messages, messages)
+      |> stream_insert(:messages, message)
       |> assign(:new_message, nil)
 
     {:noreply, socket}
@@ -114,16 +130,18 @@ defmodule AshPgWeb.AiAgentLive do
     pid = self()
 
     handler = %{
-      on_llm_new_delta: fn _chain, %{content: content} ->
-        if content do
-          send(pid, {:new_message, content})
+      on_llm_new_delta: fn _chain, %{content: message_content} ->
+        if message_content do
+          send(pid, {:new_message, message_content})
         end
       end,
-      on_message_processed: fn chain, message ->
+      on_message_processed: fn _chain, langchain_message ->
+        message = Message.from_langchain(langchain_message)
+
         case message_type(message) do
-          :message -> send(pid, {:message_processed, chain.messages})
-            _ -> nil
-          end
+          :message -> send(pid, {:message_processed, message})
+          _ -> nil
+        end
       end
     }
 
@@ -139,10 +157,6 @@ defmodule AshPgWeb.AiAgentLive do
   defp message_role(%{role: role}), do: role
 
   defp message_type(message) do
-    cond do
-      not is_nil(message.content) -> :message
-      not Enum.empty?(message.tool_calls) -> :tool_call
-      not is_nil(message.tool_results) -> :tool_result
-    end
+    message.type
   end
 end
