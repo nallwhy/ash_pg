@@ -121,10 +121,26 @@ defmodule AshPgWeb.AiAgentLive do
           file_content = path |> File.read!() |> Base.encode64()
           type = content_type(client_type)
 
-          {:ok,
-           %{type: type, content: file_content, opts: [filename: client_name, media: client_type]}}
+          result =
+            case type do
+              :image ->
+                %{
+                  type: type,
+                  content: file_content,
+                  opts: [media: client_type]
+                }
+
+              :file ->
+                [
+                  %{type: type, content: file_content, opts: [filename: client_name]},
+                  %{type: :text, content: "위의 파일 내용을 이용해서", hidden: true}
+                ]
+            end
+
+          {:ok, result}
         end
       )
+      |> List.flatten()
 
     message = Message.user(file_content_parts ++ [%{type: :text, content: message_content}])
 
@@ -228,6 +244,11 @@ defmodule AshPgWeb.AiAgentLive do
   end
 
   attr :content, Message.ContentPart, required: true
+
+  defp content(%{content: %Message.ContentPart{hidden: true}} = assigns) do
+    ~H"""
+    """
+  end
 
   defp content(%{content: %Message.ContentPart{type: :text}} = assigns) do
     ~H"""

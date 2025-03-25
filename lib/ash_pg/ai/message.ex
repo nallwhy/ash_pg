@@ -3,10 +3,11 @@ defmodule AshPg.Ai.Message do
     @type t :: %__MODULE__{
             type: :text | :image_url | :image | :file,
             content: any(),
-            opts: keyword()
+            opts: keyword(),
+            hidden: :boolean
           }
 
-    defstruct [:type, :content, opts: []]
+    defstruct [:type, :content, opts: [], hidden: false]
 
     def new(attrs) do
       struct(__MODULE__, attrs)
