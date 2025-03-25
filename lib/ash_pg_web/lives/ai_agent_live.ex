@@ -18,6 +18,10 @@ defmodule AshPgWeb.AiAgentLive do
         })
       ])
       |> assign(new_message: nil)
+      |> allow_upload(:files,
+        accept: ["image/*", "application/pdf"],
+        max_entries: 10
+      )
 
     {:ok, socket}
   end
@@ -47,20 +51,40 @@ defmodule AshPgWeb.AiAgentLive do
         </ol>
       </div>
 
-      <form phx-submit="send_message">
-        <input
-          type="text"
-          name="message"
-          placeholder="Type your message..."
-          class="w-full p-2 border border-gray-300 rounded"
-        />
-        <button
-          type="submit"
-          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
-        >
-          Send
-        </button>
-      </form>
+      <div class="border border-gray-300 rounded-xl">
+        <form phx-change="validate" phx-submit="send_message">
+          <.live_file_input upload={@uploads.files} />
+          <div>
+            <article :for={entry <- @uploads.files.entries} class="upload-entry">
+              <figure>
+                <.live_img_preview :if={content_type(entry.client_type) == :image} entry={entry} />
+                <figcaption>{entry.client_name}</figcaption>
+              </figure>
+              <progress value={entry.progress} max="100">{entry.progress}%</progress>
+              <button
+                type="button"
+                phx-click="cancel-upload"
+                phx-value-ref={entry.ref}
+                aria-label="cancel"
+              >
+                &times;
+              </button>
+            </article>
+          </div>
+          <input
+            type="text"
+            name="message"
+            placeholder="Type your message..."
+            class="w-full p-2 border-0"
+          />
+          <button
+            type="submit"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
+          >
+            Send
+          </button>
+        </form>
+      </div>
 
       <%!-- <div :for={tool <- @agent.tools} class="whitespace-pre-wrap">
         {tool.parameters_schema |> Jason.encode!(pretty: true)}
@@ -74,13 +98,35 @@ defmodule AshPgWeb.AiAgentLive do
   end
 
   @impl true
+  def handle_event("validate", _params, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("send_message", %{"message" => ""}, socket) do
     {:noreply, socket}
   end
 
   @impl true
   def handle_event("send_message", %{"message" => message_content}, socket) do
-    message = Message.user(message_content)
+    file_content_parts =
+      consume_uploaded_entries(
+        socket,
+        :files,
+        fn %{path: path},
+           %{
+             client_name: client_name,
+             client_type: client_type
+           } ->
+          file_content = path |> File.read!() |> Base.encode64()
+          type = content_type(client_type)
+
+          {:ok,
+           %{type: type, content: file_content, opts: [filename: client_name, media: client_type]}}
+        end
+      )
+
+    message = Message.user(file_content_parts ++ [%{type: :text, content: message_content}])
 
     agent = socket.assigns.agent
     {:ok, _} = agent |> Agent.run(message)
@@ -92,6 +138,11 @@ defmodule AshPgWeb.AiAgentLive do
       |> push_event("scroll-to", %{selector: "#chat-log", to: "bottom"})
 
     {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveView
+  def handle_event("cancel-upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :files, ref)}
   end
 
   @impl true
@@ -141,6 +192,13 @@ defmodule AshPgWeb.AiAgentLive do
     |> assign(:agent, agent)
   end
 
+  defp content_type(mime_type) do
+    case mime_type do
+      "image/" <> _ -> :image
+      "application/pdf" -> :file
+    end
+  end
+
   ## Components
 
   attr :dom_id, :any, required: true
@@ -150,10 +208,7 @@ defmodule AshPgWeb.AiAgentLive do
     ~H"""
     <div id={@dom_id} class="relative w-full flex flex-col items-end">
       <div class="max-w-[70%] py-2 px-4 bg-gray-200 rounded-xl prose">
-        {@message.contents
-        |> Enum.map(fn %Message.ContentPart{type: :text, content: content} ->
-          content |> Markdown.html() |> raw()
-        end)}
+        <.content :for={content <- @message.contents} content={content} />
       </div>
     </div>
     """
@@ -162,15 +217,37 @@ defmodule AshPgWeb.AiAgentLive do
   defp message(%{message: %{role: :assistant, type: :message}} = assigns) do
     ~H"""
     <div id={@dom_id} class="prose">
-      {@message.contents
-      |> Enum.map(fn %Message.ContentPart{type: :text, content: content} ->
-        content |> Markdown.html() |> raw()
-      end)}
+      <.content :for={content <- @message.contents} content={content} />
     </div>
     """
   end
 
   defp message(assigns) do
+    ~H"""
+    """
+  end
+
+  attr :content, Message.ContentPart, required: true
+
+  defp content(%{content: %Message.ContentPart{type: :text}} = assigns) do
+    ~H"""
+    <p>{@content.content |> Markdown.html() |> raw()}</p>
+    """
+  end
+
+  defp content(%{content: %Message.ContentPart{type: :image}} = assigns) do
+    ~H"""
+    <img src={"data:#{@content.opts[:media]};base64,#{@content.content}"} />
+    """
+  end
+
+  defp content(%{content: %Message.ContentPart{type: :file}} = assigns) do
+    ~H"""
+    <div>{@content.opts[:filename]}</div>
+    """
+  end
+
+  defp content(assigns) do
     ~H"""
     """
   end

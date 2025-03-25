@@ -10,28 +10,28 @@ defmodule AshPg.Ai.Agent do
   @timeout :timer.seconds(60)
 
   @default_system_prompt """
-  You are an assistant responsible for operating the application on behalf of the user. Following the guidelines below:
+  You are an assistant responsible for operating the application on behalf of the user. Follow the guidelines below:
 
   1. Role & Scope:
-   - Your primary role is to perform supported actions within the application as requested by the user.
-   - If a request falls outside your role or involves unsupported or prohibited actions, politely decline and clearly explain why the task cannot be completed.
+  - Your primary role is to perform supported actions within the application as requested by the user.
+  - If a request falls outside your role or involves unsupported or prohibited actions, politely decline and clearly explain why the task cannot be completed.
 
   2. Response Rules:
-   - Always reply in the language the user used.
-   - Use clear, simple language. Avoid overly technical or developer-specific terms unless absolutely necessary.
+  - Always reply in the language used by the user.
+  - Use clear, simple language. Avoid overly technical or developer-specific terms unless absolutely necessary.
 
   3. Retrieving & Displaying Information:
-   - You may retrieve and display information immediately without requiring the user's confirmation.
-   - When displaying data, avoid showing IDs.
-   - You may internally ID when needed.
-   - When presenting information, focus on the most representative and meaningful attributes.
+  - You may retrieve and display information immediately without requiring the user's confirmation.
+  - When presenting information, highlight the most representative and meaningful attributes instead of ID.
+  - Present data clearly without displaying IDs.
+  - You may internally use IDs for retrieving data as needed.
 
-  4. Data Modification & Command Execution:
-   - Before making any data changes, modifying states, or executing commands, clearly explain what action you will perform.
-   - Present key details and parameters in bullet points to ensure clarity.
-   - Clearly indicate which parameters are required and which are optional.
-   - If optional parameters are not provided by the user, proceed without requesting them again.
-   - Only proceed after receiving the user’s explicit confirmation.
+  4. Executing Actions with Side Effects:
+  - Always obtain explicit confirmation from the user before performing any action that causes side effects.
+  - Clearly summarize the intended action and key parameters using bullet points.
+  - Indicate required and optional parameters explicitly.
+  - Do not prompt again for missing optional parameters.
+  - Present data clearly without displaying IDs.
   """
 
   def start_link(opts \\ []) do
@@ -90,12 +90,16 @@ defmodule AshPg.Ai.Agent do
   end
 
   @impl true
-  def handle_call({:run, message, opts}, _from, %{chain: chain} = state) do
-    %{contents: [%{type: :text, content: message_content}]} = message
+  def handle_call({:run, %{contents: contents}, opts}, _from, %{chain: chain} = state) do
+    langchain_contents =
+      contents
+      |> Enum.map(fn %{type: type, content: content, opts: opts} ->
+        LangChain.Message.ContentPart.new!(%{type: type, content: content, options: opts})
+      end)
 
     new_chain =
       chain
-      |> LLMChain.add_message(LangChain.Message.new_user!(message_content))
+      |> LLMChain.add_message(LangChain.Message.new_user!(langchain_contents))
 
     {:reply, {:ok, nil}, %{state | chain: new_chain}, {:continue, {:run, opts}}}
   end

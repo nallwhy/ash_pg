@@ -2,13 +2,22 @@ defmodule AshPg.Ai.Message do
   defmodule ContentPart do
     @type t :: %__MODULE__{
             type: :text | :image_url | :image | :file,
-            content: any()
+            content: any(),
+            opts: keyword()
           }
 
-    defstruct [:type, :content]
+    defstruct [:type, :content, opts: []]
 
     def new(attrs) do
       struct(__MODULE__, attrs)
+    end
+
+    def text(text) do
+      new(%{type: :text, content: text})
+    end
+
+    def file(file, opts) do
+      new(%{type: :file, content: file, opts: opts})
     end
   end
 
@@ -37,12 +46,8 @@ defmodule AshPg.Ai.Message do
     struct(__MODULE__, new_attrs)
   end
 
-  def user(message_content) do
-    new(%{
-      role: :user,
-      type: :message,
-      contents: [%{type: :text, content: message_content}]
-    })
+  def user(contents) do
+    new(%{role: :user, type: :message, contents: contents})
   end
 
   def from_langchain(%LangChain.Message{} = langchain_message) do
@@ -56,15 +61,15 @@ defmodule AshPg.Ai.Message do
     contents =
       case langchain_message.content do
         content when is_binary(content) ->
-          [ContentPart.new(%{type: :text, content: content})]
+          [%{type: :text, content: content}]
 
         content when is_list(content) ->
           content
           |> Enum.map(fn %LangChain.Message.ContentPart{} = langchain_content_part ->
-            ContentPart.new(%{
+            %{
               type: langchain_content_part.type,
               content: langchain_content_part.content
-            })
+            }
           end)
 
         nil ->
@@ -72,11 +77,10 @@ defmodule AshPg.Ai.Message do
       end
 
     # TODO: replace id from Message
-    %__MODULE__{
-      id: U.UUID.v7(),
+    new(%{
       role: langchain_message.role,
       type: type,
       contents: contents
-    }
+    })
   end
 end
