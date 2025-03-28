@@ -8,5 +8,5 @@ Ash Playground
 $ asdf install
 $ docker compose up -d
 $ mix setup
-$ iex -S mix
+$ iex -S mix phx.server
 ```
