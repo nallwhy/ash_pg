@@ -34,18 +34,26 @@ defmodule AshPg.Music.Album do
     destroy :delete do
       primary? true
     end
+
+    read :list_for_ai do
+      prepare build(load: [:artists])
+    end
   end
 
   attributes do
     uuid_v7_primary_key :id
-    attribute :title, :string, allow_nil?: false
+
+    attribute :title, :string,
+      allow_nil?: false,
+      public?: true,
+      description: "The title of the album"
 
     create_timestamp :created_at
     update_timestamp :updated_at
   end
 
   relationships do
-    many_to_many :artists, AshPg.Music.Artist, through: AshPg.Music.ArtistAlbum
+    many_to_many :artists, AshPg.Music.Artist, through: AshPg.Music.ArtistAlbum, public?: true
     has_many :artist_albums, AshPg.Music.ArtistAlbum
   end
 end

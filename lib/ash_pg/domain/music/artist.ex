@@ -36,6 +36,11 @@ defmodule AshPg.Music.Artist do
       accept [:name, :bio]
     end
 
+    update :update do
+      primary? true
+      accept [:name, :bio]
+    end
+
     destroy :delete do
       primary? true
     end
@@ -43,7 +48,12 @@ defmodule AshPg.Music.Artist do
 
   attributes do
     uuid_v7_primary_key :id
-    attribute :name, :string, allow_nil?: false, public?: true
+
+    attribute :name, :string,
+      allow_nil?: false,
+      public?: true,
+      description: "The name of the artist"
+
     attribute :bio, AshPg.Music.ArtistBio, allow_nil?: true, public?: true
 
     create_timestamp :created_at
@@ -51,7 +61,7 @@ defmodule AshPg.Music.Artist do
   end
 
   relationships do
-    many_to_many :albums, AshPg.Music.Album, through: AshPg.Music.ArtistAlbum
+    many_to_many :albums, AshPg.Music.Album, through: AshPg.Music.ArtistAlbum, public?: true
     has_many :artist_albums, AshPg.Music.ArtistAlbum
   end
 end

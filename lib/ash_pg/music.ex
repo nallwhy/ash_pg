@@ -10,6 +10,9 @@ defmodule AshPg.Music do
   tools do
     tool :list_artists, AshPg.Music.Artist, :list
     tool :create_artist, AshPg.Music.Artist, :create
+    tool :update_artist, AshPg.Music.Artist, :update
+    tool :delete_artist, AshPg.Music.Artist, :delete
+    tool :list_albums, AshPg.Music.Album, :list_for_ai
   end
 
   resources do
