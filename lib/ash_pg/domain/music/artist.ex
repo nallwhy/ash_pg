@@ -70,11 +70,7 @@ defmodule AshPg.Music.Artist do
 
   aggregates do
     sum :studio_copies_sold, [:albums], :copies_sold do
-      # Invalid reference albums.type
-      # filter expr(albums.type == :studio)
-
-      # Not working
-      join_filter [:albums], expr(type == :studio)
+      filter expr(type == :studio)
     end
   end
 end
