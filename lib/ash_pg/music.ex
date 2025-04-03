@@ -18,6 +18,7 @@ defmodule AshPg.Music do
   resources do
     resource AshPg.Music.Artist do
       define :list_artists, action: :list
+      define :create_artist, action: :create
       define :delete_artist, action: :delete
     end
 

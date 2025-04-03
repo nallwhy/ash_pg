@@ -27,6 +27,11 @@ defmodule AshPg.Music.ArtistAlbum do
       primary? true
     end
 
+    create :create do
+      primary? true
+      accept [:artist_id, :album_id]
+    end
+
     destroy :delete do
       primary? true
     end

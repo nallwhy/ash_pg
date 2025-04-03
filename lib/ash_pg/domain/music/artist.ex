@@ -34,6 +34,9 @@ defmodule AshPg.Music.Artist do
     create :create do
       primary? true
       accept [:name, :bio]
+      argument :albums, {:array, :map}
+
+      change manage_relationship(:albums, type: :create)
     end
 
     update :update do

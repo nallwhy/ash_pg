@@ -31,6 +31,11 @@ defmodule AshPg.Music.Album do
       primary? true
     end
 
+    create :create do
+      primary? true
+      accept [:title, :type, :copies_sold]
+    end
+
     destroy :delete do
       primary? true
     end
