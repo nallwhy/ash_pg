@@ -67,4 +67,10 @@ defmodule AshPg.Music.Artist do
     many_to_many :albums, AshPg.Music.Album, through: AshPg.Music.ArtistAlbum, public?: true
     has_many :artist_albums, AshPg.Music.ArtistAlbum
   end
+
+  aggregates do
+    sum :studio_copies_sold, [:albums], :copies_sold do
+      filter expr(type == :studio)
+    end
+  end
 end
