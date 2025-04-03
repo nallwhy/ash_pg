@@ -48,6 +48,18 @@ defmodule AshPg.Music.Album do
       public?: true,
       description: "The title of the album"
 
+    attribute :type, AshPg.Music.AlbumType,
+      allow_nil?: false,
+      default: :studio,
+      public?: true,
+      description: "The type of the album"
+
+    attribute :copies_sold, :integer,
+      allow_nil?: false,
+      default: 0,
+      public?: true,
+      description: "The number of copies sold"
+
     create_timestamp :created_at
     update_timestamp :updated_at
   end

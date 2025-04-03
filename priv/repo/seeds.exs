@@ -14,7 +14,7 @@ alias AshPg.Music
 
 Ash.DataLayer.transaction([Music.Artist], fn ->
   artists =
-    1..100
+    1..10
     |> Enum.map(fn i ->
       Ash.Seed.seed!(Music.Artist, %{
         name: "artist-#{i}",
@@ -26,19 +26,32 @@ Ash.DataLayer.transaction([Music.Artist], fn ->
       })
     end)
 
+  album_types = Music.AlbumType.values()
+  album_types_count = album_types |> Enum.count()
+
   albums =
-    1..100
+    1..10
     |> Enum.map(fn i ->
       Ash.Seed.seed!(Music.Album, %{
-        title: "album-#{i}"
+        title: "album-#{i}",
+        type: album_types |> Enum.at(rem(i, album_types_count)),
+        copies_sold: i * 100
       })
     end)
 
-  [artists, albums]
-  |> Enum.zip_with(fn [artist, album] ->
-    Ash.Seed.seed!(Music.ArtistAlbum, %{
-      artist_id: artist.id,
-      album_id: album.id
-    })
+  albums
+  |> Enum.reduce(Stream.cycle(artists), fn album, artist_stream ->
+    artist_count = if album.type == :compilation, do: 2, else: 1
+
+    artist_stream
+    |> Stream.take(artist_count)
+    |> Enum.map(fn artist ->
+      Ash.Seed.seed!(Music.ArtistAlbum, %{
+        artist_id: artist.id,
+        album_id: album.id
+      })
+    end)
+
+    Stream.drop(artist_stream, artist_count)
   end)
 end)
