@@ -19,21 +19,24 @@ config :spark,
     remove_parens?: true,
     "Ash.Resource": [
       section_order: [
-        :postgres,
-        :resource,
-        :code_interface,
-        :actions,
-        :policies,
-        :pub_sub,
-        :preparations,
-        :changes,
-        :validations,
         :multitenancy,
         :attributes,
         :relationships,
+        :actions,
+        :code_interface,
+        :preparations,
         :calculations,
         :aggregates,
-        :identities
+        :validations,
+        :changes,
+        :policies,
+        :identities,
+        :pub_sub,
+        :resource,
+        # ash extensions
+        :postgres,
+        :archive,
+        :paper_trail
       ]
     ],
     "Ash.Domain": [section_order: [:resources, :policies, :authorization, :domain, :execution]]

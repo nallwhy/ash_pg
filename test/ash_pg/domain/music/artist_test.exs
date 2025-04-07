@@ -15,7 +15,6 @@ defmodule AshPg.Music.ArtistTest do
 
     %{studio_copies_sold: studio_copies_sold} = artist |> Ash.load!([:studio_copies_sold])
 
-    # The sum of copies sold for studio albums should be 1_000_000
     assert studio_copies_sold == 1_000_000
   end
 end
