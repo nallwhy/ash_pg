@@ -20,6 +20,7 @@ defmodule AshPg.Music.Artist do
   end
 
   relationships do
+    belongs_to :label, AshPg.Music.Label, public?: true
     many_to_many :albums, AshPg.Music.Album, through: AshPg.Music.ArtistAlbum, public?: true
     has_many :artist_albums, AshPg.Music.ArtistAlbum
   end
