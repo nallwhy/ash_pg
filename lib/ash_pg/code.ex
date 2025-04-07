@@ -1,5 +1,5 @@
 defmodule AshPg.Code do
-  alias AshPg.Music
+  alias AshPg.Domain.Music
 
   def weird_query() do
     Music.Artist

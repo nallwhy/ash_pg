@@ -1,6 +1,6 @@
-defmodule AshPg.Music.ArtistTest do
+defmodule AshPg.Domain.Music.ArtistTest do
   use AshPg.DataCase, async: true
-  alias AshPg.Music
+  alias AshPg.Domain.Music
 
   test "studio_copies_sold" do
     artist =

@@ -1,7 +1,7 @@
-defmodule AshPg.Music.Album do
+defmodule AshPg.Domain.Music.Album do
   use Ash.Resource,
     otp_app: :ash_pg,
-    domain: AshPg.Music,
+    domain: AshPg.Domain.Music,
     data_layer: AshPostgres.DataLayer,
     extensions: [AshArchival.Resource, AshPaperTrail.Resource]
 
@@ -13,7 +13,7 @@ defmodule AshPg.Music.Album do
       public?: true,
       description: "The title of the album"
 
-    attribute :type, AshPg.Music.AlbumType,
+    attribute :type, AshPg.Domain.Music.AlbumType,
       allow_nil?: false,
       default: :studio,
       public?: true,
@@ -30,8 +30,11 @@ defmodule AshPg.Music.Album do
   end
 
   relationships do
-    many_to_many :artists, AshPg.Music.Artist, through: AshPg.Music.ArtistAlbum, public?: true
-    has_many :artist_albums, AshPg.Music.ArtistAlbum
+    many_to_many :artists, AshPg.Domain.Music.Artist,
+      through: AshPg.Domain.Music.ArtistAlbum,
+      public?: true
+
+    has_many :artist_albums, AshPg.Domain.Music.ArtistAlbum
   end
 
   actions do

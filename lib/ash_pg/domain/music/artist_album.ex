@@ -1,7 +1,7 @@
-defmodule AshPg.Music.ArtistAlbum do
+defmodule AshPg.Domain.Music.ArtistAlbum do
   use Ash.Resource,
     otp_app: :ash_pg,
-    domain: AshPg.Music,
+    domain: AshPg.Domain.Music,
     data_layer: AshPostgres.DataLayer,
     extensions: [AshArchival.Resource, AshPaperTrail.Resource]
 
@@ -10,8 +10,8 @@ defmodule AshPg.Music.ArtistAlbum do
   end
 
   relationships do
-    belongs_to :artist, AshPg.Music.Artist, allow_nil?: false
-    belongs_to :album, AshPg.Music.Album, allow_nil?: false
+    belongs_to :artist, AshPg.Domain.Music.Artist, allow_nil?: false
+    belongs_to :album, AshPg.Domain.Music.Album, allow_nil?: false
   end
 
   actions do

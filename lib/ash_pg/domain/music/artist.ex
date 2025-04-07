@@ -1,7 +1,7 @@
-defmodule AshPg.Music.Artist do
+defmodule AshPg.Domain.Music.Artist do
   use Ash.Resource,
     otp_app: :ash_pg,
-    domain: AshPg.Music,
+    domain: AshPg.Domain.Music,
     data_layer: AshPostgres.DataLayer,
     extensions: [AshArchival.Resource, AshPaperTrail.Resource]
 
@@ -13,16 +13,20 @@ defmodule AshPg.Music.Artist do
       public?: true,
       description: "The name of the artist"
 
-    attribute :bio, AshPg.Music.ArtistBio, allow_nil?: true, public?: true
+    attribute :bio, AshPg.Domain.Music.ArtistBio, allow_nil?: true, public?: true
 
     create_timestamp :created_at
     update_timestamp :updated_at
   end
 
   relationships do
-    belongs_to :label, AshPg.Music.Label, public?: true
-    many_to_many :albums, AshPg.Music.Album, through: AshPg.Music.ArtistAlbum, public?: true
-    has_many :artist_albums, AshPg.Music.ArtistAlbum
+    belongs_to :label, AshPg.Domain.Music.Label, public?: true
+
+    many_to_many :albums, AshPg.Domain.Music.Album,
+      through: AshPg.Domain.Music.ArtistAlbum,
+      public?: true
+
+    has_many :artist_albums, AshPg.Domain.Music.ArtistAlbum
   end
 
   actions do

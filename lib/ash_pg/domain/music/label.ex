@@ -1,7 +1,7 @@
-defmodule AshPg.Music.Label do
+defmodule AshPg.Domain.Music.Label do
   use Ash.Resource,
     otp_app: :ash_pg,
-    domain: AshPg.Music,
+    domain: AshPg.Domain.Music,
     data_layer: AshPostgres.DataLayer,
     extensions: [AshArchival.Resource, AshPaperTrail.Resource]
 
@@ -15,7 +15,7 @@ defmodule AshPg.Music.Label do
   end
 
   relationships do
-    has_many :artists, AshPg.Music.Artist
+    has_many :artists, AshPg.Domain.Music.Artist
   end
 
   resource do

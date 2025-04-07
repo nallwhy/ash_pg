@@ -1,5 +1,5 @@
-defmodule AshPg.Music.ArtistBio do
-  use Ash.Resource, otp_app: :ash_pg, domain: AshPg.Music, data_layer: :embedded
+defmodule AshPg.Domain.Music.ArtistBio do
+  use Ash.Resource, otp_app: :ash_pg, domain: AshPg.Domain.Music, data_layer: :embedded
 
   attributes do
     attribute :birth, :date,

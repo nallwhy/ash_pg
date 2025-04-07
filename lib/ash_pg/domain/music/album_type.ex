@@ -1,4 +1,4 @@
-defmodule AshPg.Music.AlbumType do
+defmodule AshPg.Domain.Music.AlbumType do
   use Ash.Type.Enum,
     values: [
       :studio,
