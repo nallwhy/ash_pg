@@ -4,5 +4,7 @@ defmodule AshPg.Domain.Accounts do
     extensions: []
 
   resources do
+    resource AshPg.Domain.Accounts.Org
+    resource AshPg.Domain.Accounts.Staff
   end
 end
