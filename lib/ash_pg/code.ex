@@ -1,10 +1,7 @@
 defmodule AshPg.Code do
-  alias AshPg.Domain.Music
-
-  def weird_query() do
-    Music.Artist
-    |> Ash.Query.for_read(:list)
-    |> Ash.Query.load([:albums])
+  def weird_filtering() do
+    AshPg.Domain.Accounts.Org
+    |> Ash.Query.filter_input(%{total_staff_salary: %{greater_than: 0}})
     |> Ash.read!()
   end
 end

@@ -22,4 +22,14 @@ defmodule AshPg.Domain.Accounts.Org do
       primary? true
     end
   end
+
+  aggregates do
+    sum :salary1, [:staffs], :salary1
+    sum :salary2, [:staffs], :salary2
+
+    sum :total_staff_salary, [:staffs], :salary do
+      public? true
+      filterable? true
+    end
+  end
 end

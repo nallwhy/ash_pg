@@ -8,6 +8,8 @@ defmodule AshPg.Domain.Accounts.Staff do
     integer_primary_key :id
 
     attribute :name, :string, allow_nil?: false
+    attribute :salary1, :decimal, allow_nil?: false
+    attribute :salary2, :decimal, allow_nil?: false
 
     create_timestamp :created_at
     update_timestamp :updated_at
@@ -21,5 +23,9 @@ defmodule AshPg.Domain.Accounts.Staff do
     read :list do
       primary? true
     end
+  end
+
+  calculations do
+    calculate :salary, :decimal, expr(salary1 + salary2)
   end
 end
