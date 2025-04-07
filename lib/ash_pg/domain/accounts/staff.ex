@@ -5,7 +5,7 @@ defmodule AshPg.Domain.Accounts.Staff do
     data_layer: Ash.DataLayer.Ets
 
   attributes do
-    integer_primary_key :id
+    uuid_v7_primary_key :id
 
     attribute :name, :string, allow_nil?: false
     attribute :salary1, :decimal, allow_nil?: false
