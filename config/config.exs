@@ -45,7 +45,7 @@ config :spark,
 config :ash_pg,
   ecto_repos: [AshPg.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [AshPg.Domain.Music]
+  ash_domains: [AshPg.Domain.Music, AshPg.Domain.Accounts]
 
 # Configures the endpoint
 config :ash_pg, AshPgWeb.Endpoint,
